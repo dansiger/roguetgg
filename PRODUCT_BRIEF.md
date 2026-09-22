@@ -29,6 +29,26 @@ These access checks are complete. Detailed practice and case-study validation,
 application of the brand guidance to the game, and the open product decisions
 below remain outstanding.
 
+## First playable implementation
+
+The user authorized coding after the access checks and required all code to be
+stored in `dansiger/roguetgg`. The initial implementation includes the six-stage
+campaign, seven threat types, six active capabilities, eight possible upgrades,
+positive result profiles, PNG export, native sharing with download fallback,
+responsive controls, and local-only analytics events.
+
+See [content and brand validation](docs/CONTENT_AND_BRAND.md) for researched
+sources, the official asset provenance, and reversible prototype choices. See
+[README](README.md) for running and testing the game. The working title, hero
+name, mixed-practice structure, public TGG contact URL, and provider-neutral
+analytics were retained as prototype defaults under the instruction to begin
+coding. These are not recorded as final public-launch approvals.
+
+The earlier pre-implementation checklist below is preserved as product history.
+Initial source validation and skill review are complete; ongoing content and
+brand QA still apply. The next practical step is hands-on playtesting and
+iteration on balance, first-run comprehension, and mobile interaction.
+
 ## Product summary
 
 **Critical Path** is a short, responsive-web tactical roguelite inspired by the
@@ -494,7 +514,7 @@ The next product/design pass must resolve:
 9. **Public title clearance:** conduct appropriate legal/domain/trademark review
    before treating `Critical Path` as a final public product name.
 
-## Required next step
+## Original pre-implementation next step (historical)
 
 Do not begin by inventing a visual system or expanding generic consulting jokes.
 First, review TGG's current public materials and the `tgg-brander` skill. Then

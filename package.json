@@ -1,0 +1,23 @@
+{
+  "name": "critical-path",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A corporate-fantasy tactical roguelite for The Gunter Group",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check src/game.js && node --check src/app.js",
+    "build": "node scripts/build.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "format": "prettier --write \"src/*.{js,css}\" \"scripts/*.mjs\" \"tests/*.mjs\" index.html package.json"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "prettier": "3.6.2"
+  }
+}

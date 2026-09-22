@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="280" viewBox="0 0 240 280">
+<title>Kit Vale, a fox in a blazer with a messenger bag</title>
+<path d="M166 237Q234 225 218 161Q201 180 181 187Z" fill="#a8663f"/><path d="M218 161Q225 187 214 205L197 190Z" fill="#f2e9d7"/>
+<path d="M74 229L70 268H99L113 233M126 232L136 268H166L157 225" fill="#282c2c"/><path d="M70 261H99V272H62Q59 263 70 261M136 261H164Q179 264 174 272H136" fill="#151a1a"/>
+<path d="M74 149Q113 126 155 151L173 234Q121 249 60 233Z" fill="#454c48"/><path d="M100 143L119 195L138 141" fill="#e9e4d9"/><path d="M96 143L85 166L103 172L95 185L120 212L111 170M140 143L154 165L136 174L148 185L120 212" fill="#626b63"/>
+<path d="M66 157Q51 162 40 214L56 220L82 178" fill="#454c48"/><path d="M153 156Q176 163 184 202L166 209L145 174" fill="#454c48"/>
+<path d="M66 71L48 10L101 47Q127 32 150 46L200 12L186 82L163 123L121 152L79 121Z" fill="#b87549"/>
+<path d="M62 32L77 71L91 54M158 53L181 34L177 76" fill="#533a30"/>
+<path d="M67 84L117 108L180 81L167 119L121 150L80 117Z" fill="#f2e9d7"/>
+<path d="M104 107L136 107L123 122Z" fill="#222a28"/><path d="M121 121V130L134 133" stroke="#222a28" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M84 83L98 87M144 87L158 81" stroke="#222a28" stroke-width="5" stroke-linecap="round"/>
+<path d="M79 151L157 223" stroke="#b29370" stroke-width="9"/><rect x="140" y="204" width="46" height="38" rx="5" fill="#987753"/><path d="M140 211H186" stroke="#d2b791" stroke-width="3"/>
+<rect x="35" y="194" width="22" height="32" rx="4" fill="#171e1c" transform="rotate(-12 35 194)"/><rect x="40" y="198" width="12" height="19" rx="2" fill="#aab6a8" transform="rotate(-12 40 198)"/>
+<rect x="132" y="169" width="16" height="20" rx="2" fill="#eee9de"/><path d="M137 175H144M137 179H144" stroke="#767d73" stroke-width="2"/>
+</svg>
