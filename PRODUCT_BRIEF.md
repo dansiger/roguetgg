@@ -16,6 +16,19 @@ Before writing application code, the next contributor must:
    this brief.
 4. Resolve the open product decisions listed at the end of this document.
 
+## Access verification — completed September 22, 2026
+
+- **TGG website access: complete.** Successfully opened and read the live
+  [TGG homepage](https://guntergroup.com/), including its overview of Strategy,
+  Execution, People, and Technology.
+- **`tgg-brander` skill access and reading: complete.** Successfully opened and
+  read the installed skill in full, including its official-source references,
+  visual and editorial guidance, logo rules, and mobile rendering requirements.
+
+These access checks are complete. Detailed practice and case-study validation,
+application of the brand guidance to the game, and the open product decisions
+below remain outstanding.
+
 ## Product summary
 
 **Critical Path** is a short, responsive-web tactical roguelite inspired by the
