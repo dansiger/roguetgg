@@ -1,4 +1,11 @@
-import { STAGES, THREATS, ABILITIES, UPGRADES, CONFIG } from "./content.js";
+import {
+  STAGES,
+  THREATS,
+  ABILITIES,
+  UPGRADES,
+  CONFIG,
+  TOOL_UNLOCKS,
+} from "./content.js";
 import {
   newRun,
   act,
@@ -13,6 +20,7 @@ import {
   gateOpen,
   cost,
 } from "./game.js";
+import { lessonHint } from "./onboarding.js";
 import { track } from "./analytics.js";
 const main = document.querySelector("main");
 let state = newRun(4217),
@@ -21,6 +29,11 @@ let state = newRun(4217),
   inspect = null,
   sound = false,
   audio,
+  guidance = true,
+  inspecting = false,
+  toolUsed = false,
+  feedback = "",
+  feedbackTimer,
   focusCell = key(state.player);
 const esc = (s) =>
   String(s).replace(
@@ -72,6 +85,7 @@ function threatArt(f, x, y) {
 }
 function board(preview = false) {
   const active = !preview && state.status === "playing";
+  const hint = active && guidance ? lessonHint(state) : null;
   const shapes = CELLS.map((c) => {
     const { x, y } = point(c),
       f = state.foes.find((e) => key(e) === key(c)),
@@ -79,9 +93,9 @@ function board(preview = false) {
       gate = key(c) === key(state.gate),
       artifact = state.artifacts.find((a) => key(a) === key(c)),
       danger = dangerAt(state, c);
-    const valid = active && canTarget(state, selected, c);
+    const valid = active && !inspecting && canTarget(state, selected, c);
     const label = `${player ? "Kit Vale. " : ""}${f ? THREATS[f.type].name + ", " + f.hp + " resolve points. " : ""}${gate ? "Decision Gate, " + (gateOpen(state) ? "open" : "locked") + ". " : ""}${artifact ? artifact.name + ". " : ""}Hex ${c.q}, ${c.r}.${danger ? " " + danger + " incoming disruption." : ""}${valid ? " Available target." : ""}`;
-    return `<g class="tile ${valid ? "available" : ""} ${player ? "player" : ""} ${gate ? "gate" : ""} ${inspect === f?.id ? "inspected" : ""}" ${active ? `role="button" tabindex="${key(c) === focusCell ? 0 : -1}" data-cell="${key(c)}" aria-label="${esc(label)}"` : ""}><polygon points="${hex(x, y)}" class="hex"/>${danger ? `<polygon points="${hex(x, y)}" fill="url(#hazard)" class="hazard"/>` : ""}${gate ? `<path d="M${x} ${y - 25}L${x + 21} ${y}L${x} ${y + 25}L${x - 21} ${y}Z" fill="${gateOpen(state) ? "#414f40" : "none"}" stroke="#596453" stroke-width="3"/><text x="${x}" y="${y + 5}" class="gate-label">${gateOpen(state) ? "↗" : "◇"}</text>` : ""}${artifact ? `<rect x="${x - 12}" y="${y - 15}" width="24" height="30" rx="3" fill="#edf0e4" stroke="#58654f" stroke-width="2"/><text x="${x}" y="${y + 5}" class="check">✓</text>` : ""}${f ? threatArt(f, x, y) : ""}${f ? `<text x="${x}" y="${y + 32}" class="foe-label">${THREATS[f.type].symbol} · ${f.hp}${f.paused ? " ⏸" : ""}</text>` : ""}${player ? `<image href="assets/kit.svg" x="${x - 29}" y="${y - 40}" width="58" height="67"/><circle cx="${x}" cy="${y + 32}" r="3" fill="#262e29"/>` : ""}${danger ? `<rect x="${x + 19}" y="${y - 34}" width="18" height="18" rx="9" fill="#574b39"/><text x="${x + 28}" y="${y - 21}" class="danger-number">${danger}</text>` : ""}</g>`;
+    return `<g class="tile ${valid ? "available" : ""} ${player ? "player" : ""} ${gate ? "gate" : ""} ${gate && gateOpen(state) ? "gate-open" : ""} ${hint?.target && key(c) === key(hint.target) ? "lesson-target" : ""} ${inspect === f?.id ? "inspected" : ""}" ${active ? `role="button" tabindex="${key(c) === focusCell ? 0 : -1}" data-cell="${key(c)}" aria-label="${esc(label)}"` : ""}><polygon points="${hex(x, y)}" class="hex"/>${danger ? `<polygon points="${hex(x, y)}" fill="url(#hazard)" class="hazard"/>` : ""}${gate ? `<path d="M${x} ${y - 25}L${x + 21} ${y}L${x} ${y + 25}L${x - 21} ${y}Z" fill="${gateOpen(state) ? "#414f40" : "none"}" stroke="#596453" stroke-width="3"/><text x="${x}" y="${y + 5}" class="gate-label">${gateOpen(state) ? "↗" : "◇"}</text>` : ""}${artifact ? `<rect x="${x - 12}" y="${y - 15}" width="24" height="30" rx="3" fill="#edf0e4" stroke="#58654f" stroke-width="2"/><text x="${x}" y="${y + 5}" class="check">✓</text>` : ""}${f ? threatArt(f, x, y) : ""}${f ? `<text x="${x}" y="${y + 32}" class="foe-label">${THREATS[f.type].symbol} · ${f.hp}${f.paused ? " ⏸" : ""}</text>` : ""}${player ? `<image href="assets/kit.svg" x="${x - 29}" y="${y - 40}" width="58" height="67"/><circle cx="${x}" cy="${y + 32}" r="3" fill="#262e29"/>` : ""}${danger ? `<rect x="${x + 19}" y="${y - 34}" width="18" height="18" rx="9" fill="#574b39"/><text x="${x + 28}" y="${y - 21}" class="danger-number">${danger}</text>` : ""}</g>`;
   }).join("");
   const arrows = state.foes
     .filter((f) => f.intent.kind === "move")
@@ -99,11 +113,44 @@ function intro() {
 function game() {
   const stage = STAGES[state.stage],
     f = state.foes.find((e) => e.id === inspect);
-  return `<section class="campaign-header"><div><div class="eyebrow">ENTERPRISE TRANSFORMATION / ${stage.practices.toUpperCase()}</div><h1>${stage.name}<span class="stage-count">0${state.stage + 1} / 06</span></h1></div><div class="kit-id"><img src="assets/kit.svg" alt="" width="42" height="50"><div><strong>Kit Vale</strong><span>${stage.rank}</span></div></div></section><nav class="journey" aria-label="Campaign progress">${STAGES.map((s, i) => `<div class="${i === state.stage ? "current" : i < state.stage ? "complete" : ""}" ${i === state.stage ? 'aria-current="step"' : ""}><span>${i < state.stage ? "✓" : String(i + 1).padStart(2, "0")}</span>${s.name}</div>`).join("")}</nav><div class="game-layout"><section class="battlefield" aria-label="Encounter"><div class="board-heading"><h2>${stage.title}</h2><span>TURN ${String(state.turn + 1).padStart(2, "0")}</span></div><div class="objective"><span class="objective-icon">◇</span><div><strong>${gateOpen(state) ? "The gate is open. Bring it home." : `Resolve ${Math.min(state.resolved, stage.quota)} / ${stage.quota} risks`}</strong><span>${state.stage === 5 && !state.bossResolved ? "Close the Value Realization Gap, then reach the gate." : "Reach the diamond Decision Gate to advance."}</span></div></div>${board()}<div class="board-legend"><span><i class="legend-hazard"></i> Incoming disruption</span><span><b>⇢</b> Risk movement</span><span><b>✓</b> Collect artifact</span></div><div class="dispatch" role="status"><span>FIELD NOTE</span><p>${esc(state.message)}</p></div></section><aside class="toolkit"><div class="capacity-panel"><div class="stat-label">LEADERSHIP CAPACITY <strong>${state.hp}<span> / ${state.maxHp}</span></strong></div><div class="meter" role="meter" aria-label="Leadership capacity" aria-valuenow="${state.hp}" aria-valuemin="0" aria-valuemax="${state.maxHp}"><div style="width:${(state.hp / state.maxHp) * 100}%"></div></div><div class="stat-label influence">INFLUENCE <strong>${"●".repeat(state.energy)}<span>${"○".repeat(state.maxEnergy - state.energy)}</span> <small>${state.energy}/${state.maxEnergy}</small></strong></div></div><div class="toolkit-heading"><h2>Your capabilities</h2><span>CHOOSE. THEN ACT.</span></div><div class="abilities">${ABILITIES.map((a) => `<button data-ability="${a.id}" class="ability ${selected === a.id ? "selected" : ""}" aria-pressed="${selected === a.id}" ${state.energy < cost(state, a.id) || (a.id === "recover" && (state.recovered || state.hp === state.maxHp)) ? "disabled" : ""}><span class="ability-icon">${a.icon}</span><span><strong>${a.name}</strong><small>${a.id === "move" ? `Adjacent · ${state.power} resolve` : a.id === "dash" ? `Reposition · ${state.stride} hexes` : a.id === "insight" ? `${state.insight} resolve · ${state.range} hexes` : a.id === "recover" ? "Restore 3 capacity · once / stage" : a.id === "align" ? "Pause nearby risks · 2 turns" : "Resolve adjacent · no return"}</small></span><span class="ability-cost">${cost(state, a.id) || "—"}<small>${a.key}</small></span></button>`).join("")}</div><button class="wait" data-action="wait">Wait & regroup <span>+1 influence · W</span></button><p class="action-hint">${selected === "move" ? "Choose an outlined neighboring hex. Tap a risk to resolve it." : ABILITIES.find((a) => a.id === selected).description}</p></aside></div><section class="field-notes"><div class="notes-heading"><h2>Read the room.</h2><span>SELECT A RISK TO INSPECT ITS INTENT</span></div><div class="threat-list">${state.foes.map((e) => `<button data-inspect="${e.id}" aria-pressed="${inspect === e.id}"><b>${THREATS[e.type].symbol}</b><span>${THREATS[e.type].name}<small>${e.paused ? "Paused" : e.intent.kind === "attack" ? "Disrupts striped hexes" : e.intent.kind === "move" ? "Advances along arrow" : "Holds position"} · ${e.hp} resolve</small></span></button>`).join("") || "<p>All clear. Take your initiative through the gate.</p>"}</div>${f ? `<div class="risk-detail"><strong>${THREATS[f.type].practice} / ${THREATS[f.type].name}</strong><p>${THREATS[f.type].behavior}</p><p class="muted">${THREATS[f.type].flavor} Becomes: ${THREATS[f.type].artifact}.</p></div>` : ""}</section><div class="run-controls"><span>${state.totalResolved} risks transformed · ${state.upgrades.length} engagement artifacts</span><button class="text-button" data-action="restart">Restart initiative</button></div>`;
+  const hint = guidance ? lessonHint(state) : null;
+  const tools = ABILITIES.filter(
+    (a) => a.id !== "move" && TOOL_UNLOCKS[a.id] <= state.stage,
+  );
+  const freshTool = ABILITIES.find(
+    (a) => a.id !== "move" && TOOL_UNLOCKS[a.id] === state.stage,
+  );
+  const objective = gateOpen(state)
+    ? "Reach the Decision Gate"
+    : `Resolve ${Math.max(0, stage.quota - state.resolved)} more risk${stage.quota - state.resolved === 1 ? "" : "s"}`;
+  const toolText =
+    selected === "align"
+      ? "Pause every risk within 2 hexes for two turns."
+      : selected === "recover"
+        ? "Restore 3 capacity. Risks still act."
+        : selected === "insight"
+          ? `Resolve ${state.insight} points of a risk up to ${state.range} hexes away.`
+          : selected === "dash"
+            ? `Reposition to an empty hex up to ${state.stride} away.`
+            : ABILITIES.find((a) => a.id === selected)?.description;
+  return `<section class="play-shell">
+    <header class="play-heading"><div><span class="eyebrow">LEVEL ${state.stage + 1} / 6 · ${stage.rank}</span><h1>${stage.name}</h1></div><div class="compact-health"><span>Capacity <strong>${state.hp}/${state.maxHp}</strong></span><div class="meter" role="meter" aria-label="Leadership capacity" aria-valuenow="${state.hp}" aria-valuemin="0" aria-valuemax="${state.maxHp}"><div style="width:${(state.hp / state.maxHp) * 100}%"></div></div></div></header>
+    <section class="play-board" aria-label="Encounter"><div class="play-objective"><strong>${objective}${state.stage === 5 && !state.bossResolved ? " · close the Value Gap" : ""}</strong><span>Turn ${state.turn + 1}</span></div>
+    ${hint ? `<div class="coach-space"><div class="coach-bubble" role="status" data-lesson="${hint.id}"><strong>${hint.title}</strong><p>${hint.text}</p></div><button class="skip-guide" data-action="skip-guide">Skip guidance</button></div>` : ""}
+    <div class="board-scene">${board()}</div>
+    ${f ? `<div class="inspect-popover" role="status"><button data-action="close-inspect" aria-label="Close risk details">×</button><strong>${THREATS[f.type].name} · ${f.hp} to resolve</strong><p>${state.stage === 0 && f.type === "scope" ? "Move beside it, then tap it to turn it into a controlled backlog." : THREATS[f.type].behavior}</p></div>` : ""}
+    ${feedback ? `<div class="play-feedback" role="status">${esc(feedback)}</div>` : ""}
+    </section>
+    ${tools.length ? `<section class="tool-dock" aria-label="Tools to use on the board"><div class="dock-heading"><strong>Your tools</strong><span>Influence <b>${state.energy}/${state.maxEnergy}</b></span></div>${!toolUsed && freshTool ? `<p class="new-tool-hint">New: <strong>${freshTool.name}</strong>. Tap the tool to see how to use it. Tools spend influence; resolving risks earns it back.</p>` : ""}<div class="tool-buttons">${tools.map((a) => `<button data-ability="${a.id}" class="tool-button ${selected === a.id ? "selected" : ""}" aria-pressed="${selected === a.id}" ${state.energy < cost(state, a.id) || (a.id === "recover" && (state.recovered || state.hp === state.maxHp)) ? "disabled" : ""}><span>${a.icon}</span> ${a.name}<small>${cost(state, a.id)} influence</small></button>`).join("")}</div>${selected !== "move" ? `<div class="tool-instruction" role="status"><p>${toolText}</p>${["align", "recover"].includes(selected) ? `<button class="primary" data-action="use-tool">Use ${ABILITIES.find((a) => a.id === selected).name}</button>` : ""}<button class="text-button" data-action="cancel-tool">Cancel · move instead</button></div>` : ""}</section>` : ""}
+    <div class="play-controls"><button data-action="inspect-mode" aria-pressed="${inspecting}">${inspecting ? "Cancel inspect" : "Inspect a risk"}</button>${state.stage > 0 ? '<button data-action="wait">Wait · +1 influence</button>' : ""}${state.stage === 0 && !guidance ? '<button data-action="show-guide">Show guidance</button>' : ""}<button data-action="restart">Restart</button></div>
+    ${inspecting ? '<p class="inspect-hint" role="status">Tap a risk on the board to read its next action. Inspecting does not use a turn.</p>' : ""}
+  </section>`;
 }
 function upgradeView() {
   const next = STAGES[state.stage + 1];
-  return `<section class="interlude"><div class="eyebrow">DECISION GATE CLEARED / STAGE ${state.stage + 1}</div><h1>A little more influence.<br>A larger remit.</h1><div class="promotion"><img src="assets/kit.svg" alt="Kit Vale" width="100" height="117"><div><span class="eyebrow">PROMOTED TO</span><h2>${next.rank}</h2><p>${next.quote}</p></div></div><div class="section-label"><h2>What will you bring into ${next.name.toLowerCase()}?</h2><p>Choose one artifact. Restore ${3 + state.restBonus} capacity and refill influence.</p></div><div class="upgrade-grid">${upgradeChoices(
+  if (state.stage === 0)
+    return `<section class="first-promotion"><img src="assets/kit.svg" alt="Kit Vale" width="110" height="128"><div class="eyebrow">PROMOTED TO VICE PRESIDENT</div><h1>You made room<br>for progress.</h1><p>Two risks transformed. Your next move comes with a new tool.</p><div class="earned-tool"><span>◎</span><div><small>YOUR FIRST TOOL</small><h2>Facilitate</h2><p>Pause nearby risks for two turns.<br>A good conversation buys breathing room.</p></div></div><button class="primary" data-upgrade="first-tool">Try it in Level 2 <span>↗</span></button><p class="promotion-recovery">Capacity restored. Influence refilled.</p></section>`;
+  return `<section class="interlude"><div class="eyebrow">DECISION GATE CLEARED / STAGE ${state.stage + 1}</div><h1>A little more influence.<br>A larger remit.</h1><div class="promotion"><img src="assets/kit.svg" alt="Kit Vale" width="100" height="117"><div><span class="eyebrow">PROMOTED TO</span><h2>${next.rank}</h2><p>${next.quote}</p></div></div><p class="promotion-tool">New tool unlocked: <strong>${ABILITIES.find((a) => a.id !== "move" && TOOL_UNLOCKS[a.id] === state.stage + 1)?.name}</strong></p><div class="section-label"><h2>What will you bring into ${next.name.toLowerCase()}?</h2><p>Choose one artifact. Restore ${3 + state.restBonus} capacity and refill influence.</p></div><div class="upgrade-grid">${upgradeChoices(
     state,
   )
     .map(
@@ -138,6 +185,11 @@ function start() {
   screen = "game";
   selected = "move";
   inspect = null;
+  inspecting = false;
+  guidance = true;
+  toolUsed = false;
+  feedback = "";
+  clearTimeout(feedbackTimer);
   focusCell = key(state.player);
   track("run_started", { seed: state.seed });
   render();
@@ -145,13 +197,18 @@ function start() {
   window.scrollTo(0, 0);
 }
 function execute(id, p) {
+  const beforeResolved = state.totalResolved,
+    beforeHp = state.hp;
   const old = state.status,
     stage = state.stage;
   if (act(state, id, p)) {
     beep();
     selected = "move";
+    inspecting = false;
+    inspect = null;
     track("action_taken", { action: id, stage });
-    if (state.totalTurns === 1) track("tutorial_completed");
+    if (id !== "move" && TOOL_UNLOCKS[id] === state.stage) toolUsed = true;
+    if (stage === 0 && state.status === "upgrade") track("tutorial_completed");
     if (state.status !== old) {
       if (state.status === "upgrade" || state.status === "won")
         track("stage_completed", { stage });
@@ -165,6 +222,23 @@ function execute(id, p) {
       window.scrollTo(0, 0);
     }
   }
+  feedback =
+    state.hp < beforeHp
+      ? `−${beforeHp - state.hp} capacity. Watch the striped hexes.`
+      : state.totalResolved > beforeResolved
+        ? state.stage === 0
+          ? "Risk transformed. Progress made."
+          : state.message
+        : state.message.startsWith("Choose") ||
+            state.message.startsWith("Not enough")
+          ? state.message
+          : "";
+  clearTimeout(feedbackTimer);
+  if (feedback)
+    feedbackTimer = setTimeout(() => {
+      feedback = "";
+      main.querySelector(".play-feedback")?.remove();
+    }, 2400);
   render();
   document.querySelector("#announcement").textContent = state.message;
   if (state.status !== old) main.focus();
@@ -180,22 +254,55 @@ main.addEventListener("click", async (e) => {
   if (b.dataset.action === "wait") execute("wait");
   if (b.dataset.action === "download") await downloadResult();
   if (b.dataset.action === "share") await shareResult();
+  if (b.dataset.action === "skip-guide" || b.dataset.action === "show-guide") {
+    guidance = b.dataset.action === "show-guide";
+    track(guidance ? "tutorial_resumed" : "tutorial_skipped");
+    render();
+    main
+      .querySelector(
+        guidance ? '[data-action="skip-guide"]' : '[data-action="show-guide"]',
+      )
+      ?.focus({ preventScroll: true });
+  }
+  if (b.dataset.action === "inspect-mode") {
+    inspecting = !inspecting;
+    inspect = null;
+    selected = "move";
+    render();
+    main
+      .querySelector('[data-action="inspect-mode"]')
+      ?.focus({ preventScroll: true });
+  }
+  if (b.dataset.action === "close-inspect") {
+    inspect = null;
+    inspecting = false;
+    render();
+    main
+      .querySelector('[data-action="inspect-mode"]')
+      ?.focus({ preventScroll: true });
+  }
+  if (b.dataset.action === "cancel-tool") {
+    selected = "move";
+    render();
+    main.querySelector("[data-ability]")?.focus({ preventScroll: true });
+  }
+  if (b.dataset.action === "use-tool") execute(selected);
   if (b.dataset.ability) {
-    selected = b.dataset.ability;
-    if (["align", "recover"].includes(selected)) execute(selected);
-    else {
-      render();
-      main
-        .querySelector(`[data-ability="${selected}"]`)
-        ?.focus({ preventScroll: true });
-      if (matchMedia("(max-width:760px)").matches)
-        main.querySelector(".battlefield")?.scrollIntoView({ block: "start" });
-    }
+    selected = selected === b.dataset.ability ? "move" : b.dataset.ability;
+    inspecting = false;
+    inspect = null;
+    render();
+    main
+      .querySelector(`[data-ability="${b.dataset.ability}"]`)
+      ?.focus({ preventScroll: true });
   }
   if (b.dataset.cell) {
     const [q, r] = b.dataset.cell.split(",").map(Number);
     focusCell = b.dataset.cell;
-    execute(selected, { q, r });
+    if (inspecting) {
+      inspect = state.foes.find((f) => f.q === q && f.r === r)?.id ?? null;
+      render();
+    } else execute(selected, { q, r });
   }
   if (b.dataset.inspect) {
     inspect = Number(b.dataset.inspect);
@@ -210,6 +317,10 @@ main.addEventListener("click", async (e) => {
       track("upgrade_selected", { id });
       track("promotion_earned", { stage: state.stage });
       inspect = null;
+      inspecting = false;
+      toolUsed = false;
+      feedback = "";
+      clearTimeout(feedbackTimer);
       focusCell = key(state.player);
       render();
       main.focus();
@@ -264,14 +375,23 @@ document.addEventListener("keydown", (e) => {
     return;
   if (e.key === "Escape") {
     selected = "move";
+    inspecting = false;
+    inspect = null;
     render();
   }
   const a = ABILITIES.find((a) => a.key === e.key);
   if (a) {
     e.preventDefault();
+    if (a.id === "move") {
+      selected = "move";
+      inspecting = false;
+      inspect = null;
+      render();
+      return;
+    }
     main.querySelector(`[data-ability="${a.id}"]`)?.click();
   }
-  if (e.key.toLowerCase() === "w") {
+  if (e.key.toLowerCase() === "w" && state.stage > 0) {
     e.preventDefault();
     execute("wait");
   }

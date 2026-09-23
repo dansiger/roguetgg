@@ -17,6 +17,7 @@ import {
 import { STAGES, THREATS } from "../src/content.js";
 function clean() {
   const s = newRun(42);
+  s.stage = 5;
   s.foes = [];
   s.player = { q: 0, r: 0 };
   return s;
@@ -46,7 +47,8 @@ test("seeded encounters are repeatable, unique and leave a safe start", () => {
       assert.equal(new Set(a.foes.map(key)).size, a.foes.length);
       assert.ok(
         a.foes.every(
-          (f) => distance(f, a.player) > 2 && key(f) !== key(a.gate),
+          (f) =>
+            (i === 0 || distance(f, a.player) > 2) && key(f) !== key(a.gate),
         ),
       );
     }
@@ -135,6 +137,7 @@ test("locked gate is traversable but cannot advance campaign", () => {
 test("open gate ends stage before enemy attacks; upgrades persist and restore", () => {
   const s = clean();
   s.player = { q: 2, r: -2 };
+  s.stage = 0;
   s.resolved = 2;
   s.hp = 4;
   s.energy = 0;
@@ -187,7 +190,7 @@ test("all stages can complete and reach the win flow", () => {
     assert.equal(s.stage, i);
     s.resolved = STAGES[i].quota;
     s.bossResolved = i === 5;
-    s.player = { q: 2, r: -2 };
+    s.player = { q: s.gate.q - 1, r: s.gate.r };
     s.foes = [];
     act(s, "move", s.gate);
     if (i < 5) {
@@ -204,4 +207,40 @@ test("capabilities enforce distance and influence", () => {
   s.energy = 0;
   assert.equal(canTarget(s, "insight", { q: 3, r: 0 }), false);
   assert.equal(canTarget(s, "dash", { q: 1, r: 0 }), false);
+});
+
+test("opening is fixed across seeds; first risk wakes the second and dodge is recognized", () => {
+  const s = newRun(1),
+    other = newRun(99);
+  assert.deepEqual(s.foes, other.foes);
+  assert.equal(s.foes.find((f) => f.type === "imp").intent.kind, "hold");
+  act(s, "move", { q: -2, r: 2 });
+  assert.equal(s.lesson.moved, true);
+  act(s, "move", { q: -2, r: 1 });
+  assert.equal(s.resolved, 1);
+  assert.equal(s.foes[0].intent.kind, "attack");
+  act(s, "move", { q: -1, r: 2 });
+  assert.equal(s.lesson.dodged, true);
+  assert.equal(s.hp, 10);
+});
+test("tools are locked in the engine until the corresponding promotion", () => {
+  const s = newRun(1);
+  for (const id of ["align", "dash", "insight", "change", "recover"])
+    assert.equal(act(s, id, { q: -2, r: 2 }), false);
+  assert.equal(s.turn, 0);
+  assert.equal(s.energy, 4);
+  s.status = "upgrade";
+  assert.deepEqual(
+    upgradeChoices(s).map((u) => u.id),
+    ["first-tool"],
+  );
+  promote(s, "first-tool");
+  assert.equal(s.stage, 1);
+  assert.equal(act(s, "align"), true);
+  assert.equal(canTarget(s, "dash", { q: -2, r: 2 }), false);
+});
+test("opening Scope Creep does not multiply while a beginner experiments", () => {
+  const s = newRun(1);
+  for (let i = 0; i < 4; i++) act(s, "wait");
+  assert.equal(s.foes.filter((f) => f.type === "scope").length, 1);
 });

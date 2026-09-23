@@ -7,7 +7,7 @@ export const STAGES = [
       "Build a shared view of the initiative. Resolve 2 risks, then reach the Decision Gate.",
     practices: "Strategy + Execution",
     quota: 2,
-    types: ["scope", "hydra"],
+    types: ["scope", "imp"],
     quote:
       "The kickoff went well. Everyone agreed that someone should own this.",
   },
@@ -247,4 +247,14 @@ export const UPGRADES = [
 export const CONFIG = {
   contact: "https://guntergroup.com/lets-talk/",
   explore: "https://guntergroup.com/how-we-help/",
+};
+
+// A new tool is earned at each promotion; movement is always available.
+export const TOOL_UNLOCKS = {
+  move: 0,
+  align: 1,
+  dash: 2,
+  insight: 3,
+  change: 4,
+  recover: 5,
 };

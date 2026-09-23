@@ -1,7 +1,8 @@
 import { act, canTarget, CELLS, gateOpen, distance, key } from "../src/game.js";
 // A simple one-turn greedy player for repeatable smoke tests; not a game AI.
 export function chooseAction(s, visits = new Map()) {
-  const candidates = [{ id: "wait" }, { id: "align" }, { id: "recover" }];
+  const candidates = [{ id: "align" }, { id: "recover" }];
+  if (s.stage > 0) candidates.push({ id: "wait" });
   for (const id of ["move", "dash", "insight", "change"])
     for (const p of CELLS) if (canTarget(s, id, p)) candidates.push({ id, p });
   let best;

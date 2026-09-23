@@ -29,6 +29,20 @@ These access checks are complete. Detailed practice and case-study validation,
 application of the brand guidance to the game, and the open product decisions
 below remain outstanding.
 
+## Onboarding revision — September 23, 2026
+
+Following playtest feedback, Level 1 now uses a fixed, two-risk encounter and
+one action-driven guidance bubble at a time. It teaches movement, resolution,
+and reading attack intentions without a tool menu. Guidance can be skipped or
+restored; legal moves remain unrestricted. Risk details are available through
+Inspect, with no turn cost. Permanent field notes, the risk-card row, and the
+campaign strip have been removed from the playing screen.
+
+Each promotion introduces one tool. The first awards Facilitate directly;
+subsequent promotions also offer artifact choices. Influence appears when
+players first receive a tool. Tools are explicitly labeled and previewed before
+use. See [onboarding behavior and verification](docs/ONBOARDING.md).
+
 ## First playable implementation
 
 The user authorized coding after the access checks and required all code to be

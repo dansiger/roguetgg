@@ -1,4 +1,10 @@
-import { STAGES, THREATS, ABILITIES, UPGRADES } from "./content.js";
+import {
+  STAGES,
+  THREATS,
+  ABILITIES,
+  UPGRADES,
+  TOOL_UNLOCKS,
+} from "./content.js";
 export const DIRECTIONS = [
   [1, 0],
   [1, -1],
@@ -57,6 +63,7 @@ export function newRun(seed = Date.now()) {
     status: "playing",
     startedAt: Date.now(),
     bossResolved: false,
+    lesson: { moved: false, dodged: false },
   };
   setupStage(s);
   return s;
@@ -85,6 +92,30 @@ export function setupStage(s) {
     paused: 0,
     returned: false,
   }));
+  if (s.stage === 0) {
+    s.gate = { q: 2, r: -1 };
+    s.foes = [
+      {
+        id: s.nextId++,
+        type: "scope",
+        q: -1,
+        r: 1,
+        hp: 1,
+        paused: 0,
+        returned: false,
+      },
+      {
+        id: s.nextId++,
+        type: "imp",
+        q: 0,
+        r: 0,
+        hp: 1,
+        paused: 0,
+        returned: false,
+        introductory: true,
+      },
+    ];
+  }
   s.status = "playing";
   s.message = STAGES[s.stage].quote;
   s.history = [s.message];
@@ -95,6 +126,12 @@ export function gateOpen(s) {
     s.resolved >= STAGES[s.stage].quota && (s.stage !== 5 || s.bossResolved)
   );
 }
+export function unlocked(s, id) {
+  return (
+    id === "wait" ||
+    (TOOL_UNLOCKS[id] !== undefined && s.stage >= TOOL_UNLOCKS[id])
+  );
+}
 export function cost(s, id) {
   return id === "align"
     ? s.alignCost
@@ -103,6 +140,10 @@ export function cost(s, id) {
 export function planIntents(s) {
   for (const f of s.foes) {
     const d = distance(f, s.player);
+    if (f.introductory && s.resolved === 0) {
+      f.intent = { kind: "hold", cells: [] };
+      continue;
+    }
     if (f.paused > 0) {
       f.intent = { kind: "paused", cells: [] };
       continue;
@@ -179,7 +220,12 @@ function hit(s, f, amount, permanent = false) {
   );
 }
 export function canTarget(s, id, p) {
-  if (s.status !== "playing" || !inside(p) || s.energy < cost(s, id))
+  if (
+    s.status !== "playing" ||
+    !unlocked(s, id) ||
+    !inside(p) ||
+    s.energy < cost(s, id)
+  )
     return false;
   const d = distance(s.player, p),
     f = s.foes.find((e) => key(e) === key(p));
@@ -190,7 +236,7 @@ export function canTarget(s, id, p) {
   return false;
 }
 export function act(s, id, target) {
-  if (s.status !== "playing") return false;
+  if (s.status !== "playing" || !unlocked(s, id)) return false;
   if (!["wait", ...ABILITIES.map((a) => a.id)].includes(id)) return false;
   const fee = cost(s, id);
   if (s.energy < fee) {
@@ -215,11 +261,17 @@ export function act(s, id, target) {
     log(s, "Leadership capacity is already full.");
     return false;
   }
+  const previousDanger = dangerAt(s, s.player);
   s.energy -= fee;
   s.uses[id] = (s.uses[id] || 0) + 1;
   const foe = target && s.foes.find((f) => key(f) === key(target));
   if (id === "move" && foe) hit(s, foe, s.power);
   else if (id === "move" || id === "dash") {
+    if (s.stage === 0) {
+      s.lesson.moved = true;
+      if (previousDanger > 0 && dangerAt(s, target) === 0)
+        s.lesson.dodged = true;
+    }
     s.player = { ...target };
     log(
       s,
@@ -283,7 +335,12 @@ export function act(s, id, target) {
       )
         Object.assign(f, p);
     }
-    if (f.type === "scope" && s.turn % 4 === 0 && s.foes.length < 8) {
+    if (
+      s.stage > 0 &&
+      f.type === "scope" &&
+      s.turn % 4 === 0 &&
+      s.foes.length < 8
+    ) {
       const p = neighbors(f).find(
         (c) =>
           key(c) !== key(s.player) &&
@@ -315,9 +372,21 @@ export function act(s, id, target) {
   return true;
 }
 export function upgradeChoices(s) {
+  if (s.stage === 0)
+    return [
+      {
+        id: "first-tool",
+        name: "Facilitate",
+        type: "YOUR FIRST TOOL",
+        description:
+          "Pause nearby risks for two turns. Make room for your next move.",
+      },
+    ];
   const rng = random(s.seed + s.stage * 31 + 101);
   const available = UPGRADES.filter(
     (u) =>
+      (u.id !== "range" || s.stage >= 2) &&
+      (u.id !== "stride" || s.stage >= 1) &&
       (u.id !== "harvest" || !s.harvest) &&
       (u.id !== "power" || s.power < 3) &&
       (u.id !== "economy" || s.alignCost > 1),

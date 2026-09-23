@@ -1,5 +1,7 @@
 # Prototype verification
 
+For the current onboarding revision and its 19 tests, see [ONBOARDING.md](ONBOARDING.md). The results below describe the original prototype before progressive tool unlocks.
+
 Checks completed for the initial implementation:
 
 - 16 engine regression tests passed. Coverage includes deterministic placement,

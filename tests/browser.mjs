@@ -80,8 +80,38 @@ try {
     path: "test-results/mobile-game.png",
     fullPage: true,
   });
+  // Opening teaches by actions; no tool menu or hidden-tool shortcuts.
+  assert.equal(await page.locator("[data-ability]").count(), 0);
+  assert.equal(await page.locator('[data-lesson="move"]').count(), 1);
+  await page.keyboard.press("4");
+  assert.equal(await page.locator("[data-ability]").count(), 0);
+  await page.locator('[data-action="skip-guide"]').click();
+  assert.equal(await page.locator("[data-lesson]").count(), 0);
+  await page.locator('[data-action="show-guide"]').click();
+  await page.locator('[data-action="inspect-mode"]').click();
+  await page.locator('[data-cell="-1,1"]').click();
+  assert.match(
+    await page.locator(".inspect-popover").innerText(),
+    /Scope Creep/,
+  );
+  assert.match(await page.locator(".play-objective").innerText(), /Turn 1/);
+  await page.locator('[data-action="close-inspect"]').click();
   const s = newRun(1),
     visits = new Map();
+  // Explicitly perform the three learning beats before the general smoke player.
+  for (const [p, lesson] of [
+    [{ q: -2, r: 2 }, "resolve"],
+    [{ q: -2, r: 1 }, "dodge"],
+    [{ q: -1, r: 2 }, "finish"],
+  ]) {
+    await page.locator(`[data-cell="${key(p)}"]`).click();
+    act(s, "move", p);
+    assert.equal(await page.locator(`[data-lesson="${lesson}"]`).count(), 1);
+  }
+  await page.screenshot({
+    path: "test-results/mobile-dodge.png",
+    fullPage: true,
+  });
   let promotionSeen = false;
   for (
     let i = 0;
@@ -103,6 +133,18 @@ try {
           opts[0];
       await page.locator(`[data-upgrade="${u.id}"]`).click();
       promote(s, u.id);
+      if (s.stage === 1) {
+        assert.equal(await page.locator("[data-ability]").count(), 1);
+        const before = await page.locator(".play-objective").innerText();
+        await page.locator('[data-ability="align"]').click();
+        assert.equal(await page.locator('[data-action="use-tool"]').count(), 1);
+        assert.equal(await page.locator(".play-objective").innerText(), before);
+        await page.locator('[data-action="cancel-tool"]').click();
+        await page.screenshot({
+          path: "test-results/mobile-level2.png",
+          fullPage: true,
+        });
+      }
       continue;
     }
     const k = `${s.stage}:${key(s.player)}`;
@@ -110,7 +152,10 @@ try {
     const c = chooseAction(s, visits);
     if (c.id === "wait") await page.locator('[data-action="wait"]').click();
     else {
-      await page.locator(`[data-ability="${c.id}"]`).click();
+      if (c.id !== "move")
+        await page.locator(`[data-ability="${c.id}"]`).click();
+      if (["align", "recover"].includes(c.id))
+        await page.locator('[data-action="use-tool"]').click();
       if (c.p) await page.locator(`[data-cell="${key(c.p)}"]`).click();
     }
     act(s, c.id, c.p);
@@ -139,17 +184,11 @@ try {
     fullPage: true,
   });
   await page.locator('[data-action="start"]').click();
-  for (
-    let i = 0;
-    i < 60 && (await page.locator('[data-action="wait"]').count());
-    i++
-  )
-    await page.locator('[data-action="wait"]').click();
-  assert.match(await page.locator("h1").innerText(), /Momentum Maker/);
-  assert.equal(await page.locator('[data-action="download"]').count(), 1);
+  assert.equal(await page.locator('[data-lesson="move"]').count(), 1);
+  assert.equal(await page.locator("[data-ability]").count(), 0);
   assert.deepEqual(errors, []);
   console.log(
-    "Browser checks passed: six-stage victory, promotions, stall/restart, PNG export, keyboard navigation, help, 320/390/768/1440 layouts.",
+    "Browser checks passed: six-stage victory, promotions, guided opening/restart, PNG export, keyboard navigation, help, 320/390/768/1440 layouts.",
   );
 } finally {
   await browser?.close();

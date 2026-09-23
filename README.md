@@ -39,7 +39,7 @@ npm run test:browser
 ```
 
 The browser test starts its own local server and checks a complete campaign,
-promotion choices, stall/restart, keyboard controls, result download, and screen
+promotion choices, guided opening/restart, keyboard controls, result download, and screen
 widths from 320 to 1440 pixels. Screenshots go to ignored `test-results/`.
 Set `CHROMIUM_PATH` if using an existing Chromium executable. `npm run format`
 formats application source and tests.
@@ -51,8 +51,8 @@ formats application source and tests.
   resolution rather than movement. Resolving a risk restores 1 influence.
 - Stripes and numbers show the next disruption; arrows show planned movement.
   Each accepted action gives remaining risks one response. Invalid clicks are free.
-- Choose a capability and then its highlighted target. Facilitate and Recovery
-  plan are immediate actions. Waiting restores influence but also advances risks.
+- Tools unlock one at a time at promotions. Choose a capability and then its highlighted target. Facilitate and Recovery
+  plan require clicking their Use button after previewing the effect. Waiting restores influence but also advances risks.
 - Walk onto resolved artifacts for another influence point.
 - Resolve the stage quota, then reach its Decision Gate. Choose one upgrade;
   restore capacity, refill influence, and continue. The last gate also requires
@@ -61,7 +61,8 @@ formats application source and tests.
   sharing if your browser supports it. Unsupported sharing falls back to download.
 
 Keyboard: Tab/Enter throughout; arrows browse the board; Enter/Space acts on
-its focused hex; 1–6 select capabilities; W waits; Escape cancels selection.
+its focused hex; 1 returns to movement; 2–6 select unlocked tools; W waits
+from Level 2 onward; Escape cancels selection.
 The field guide describes all controls. Sound starts off.
 
 ## Source map
@@ -83,8 +84,10 @@ The field guide describes all controls. Sound starts off.
 This is a first playable prototype, not a public launch. It includes all six
 stages, seven threat behaviors, six capabilities, eight possible upgrades,
 success/stall endings, result export, keyboard/touch support, optional synthesized
-sound, and local analytics events. Gameplay is deterministic after encounter
-generation; each new run uses a fresh seed.
+sound, and local analytics events. Level 1 uses a fixed teaching encounter with optional, action-driven speech
+bubbles. Later levels use a fresh seed for each run. The first promotion awards
+Facilitate; subsequent promotions add Delivery plan, Data insight, Change
+leadership, and Recovery plan. See [onboarding notes](docs/ONBOARDING.md).
 
 There is no persistent account, save/resume, multiplayer, long-term unlock tree,
 or installed analytics vendor. Refresh starts over. Public launch and hosting
