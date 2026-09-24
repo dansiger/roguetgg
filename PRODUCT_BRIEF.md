@@ -9,6 +9,13 @@ default entry: four simple interactions, eight short rounds, comic success and
 miss outcomes, and a shareable survival report. The original tactical game
 remains at `tactical.html` for comparison.
 
+Playtest feedback confirmed that the humor lands. The opening four rounds remain
+simple introductions; each returning round now adds one absurd office disruption:
+a resurrected scope request, a taller planning-meeting coffee cup, a leadership
+tangent, or an ON TRACK sticker covering a known problem. Each joke pauses the
+clock and gameplay briefly. Random explanations encourage repeat play without
+repeatedly undoing the player's progress.
+
 This supersedes the roguelite implementation direction for the current
 experiment. The marketing objective remains an instantly enjoyable activity
 with TGG relevance emerging at the end. See [office arcade notes](docs/OFFICE_ARCADE.md)

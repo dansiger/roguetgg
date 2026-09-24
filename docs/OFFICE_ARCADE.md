@@ -11,7 +11,20 @@ A deliberately different experiment from Critical Path. The entry page now opens
 | Fill, don’t spill | Hold POUR and release in a visible target band | One mug is the entire wellness budget. |
 | Hit the red flags | Tap a red alarm that reappears elsewhere | The dashboard insists everything is green. |
 
-The second pass increases request counts, coffee speed, leadership size, and red flags.
+The second pass adds one office interruption to each returning challenge:
+
+- Scope: after two shreds, one discarded request returns as a leadership priority.
+- Coffee: at 35% fill, the cup grows taller and the target rises. Pouring stops
+  for the joke; hold again afterward. The wider 74–96% band, slower pour, and
+  two extra seconds make this forgiving.
+- ALIGN: after two bosses align, one randomly turns away during a random tangent.
+- Dashboard: after the first red flag, someone covers the next one with a crooked
+  ON TRACK sticker. Peel it, then tap the exposed flag.
+
+Each interruption has a seeded random explanation and pauses gameplay and the
+clock for 4.5 seconds, with a Back to it button to resume sooner. In no-timer
+mode, it waits for that button. Pause/tab switching also freezes the joke beat.
+The first four introductory rounds retain their original rules.
 There are no upgrades, capacity meters, consulting tool menus, or pre-game tutorial.
 Instructions are a single sentence. Timers start with the first action. A missed
 round receives its own punchline and progresses, so everyone reaches the ending.
@@ -48,22 +61,15 @@ sent to a service. Sharing is initiated by the player.
 - `src/office/game.js`: pure rules, seeded setup, timing, scoring, transitions.
 - `src/office/app.js`: DOM, pointer/keyboard input, audio, RAF clock, export.
 - `src/office/style.css`: responsive illustrated scenes and feedback.
-- `tests/office.test.mjs`: twelve rule tests.
+- `tests/office.test.mjs`: seventeen rule tests.
 - `tests/office-browser.mjs`: full session, timeout progression, pause,
   pointer/keyboard pouring, touch, reduced motion, download, responsive checks.
 
-The local implementation workspace disconnected during development. The twelve
-new pure rule tests first passed in the available JavaScript runtime. GitHub
-Actions then passed syntax checks, the static build, all 31 rule tests across
-both prototypes, and both browser suites. The new browser suite exercised an
-eight-win session, timed failure/automatic continuation, keyboard and pointer
-pouring, pause, no-timer mode, touch, reduced motion, PNG export, and viewport
-widths from 320 to 1440 pixels.
-
-[Passing check run](https://github.com/dansiger/roguetgg/actions/runs/35953962113).
-Screenshots are included in that run's browser-checks artifact. Manual visual
-review of those screenshots remains pending because the local workspace was
-disconnected; automated browser checks are not a substitute for a humor playtest.
+The updated rules pass all 36 tests across both prototypes. Browser checks cover
+an eight-win session with all four interruptions, frozen coffee during the joke,
+timed interruption auto-resume, manual pause during a joke, timeout progression,
+keyboard/pointer input, touch, reduced motion, PNG export, and responsive widths.
+Mobile screenshots of each interruption are reviewed locally.
 
 ## Playtest questions
 
