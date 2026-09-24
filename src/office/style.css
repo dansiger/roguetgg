@@ -1412,9 +1412,11 @@ footer img {
   margin-top: 12px;
 }
 .tgg-cta {
-  border-top: 1px solid #203d3530;
-  margin-top: 27px;
-  padding-top: 25px;
+  border-left: 4px solid #d4ad53;
+  background: #efe7cf;
+  margin-bottom: 32px;
+  padding: 22px;
+  border-radius: 0 8px 8px 0;
 }
 .tgg-cta h3 {
   font-size: 27px;
