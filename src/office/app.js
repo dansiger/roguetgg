@@ -226,6 +226,8 @@ function syncInterruption() {
     }
     return;
   }
+  document.querySelector("#timer-label").textContent =
+    "Clock paused. Take in the nonsense.";
   if (existing) return;
   const pour = document.querySelector("[data-pour]");
   if (pointerId !== null && pour?.hasPointerCapture(pointerId))
