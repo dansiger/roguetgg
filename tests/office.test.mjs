@@ -143,13 +143,17 @@ test("a full perfect session earns a positive result without persistent progress
   assert.equal(resultProfile(s).score, 8);
 });
 
-test("scope resurrects a shredded request exactly once", () => {
+test("scope waits for the final shred, then resurrects an earlier request once", () => {
   const r = makeRound(4, 9);
-  interact(r, 0);
-  interact(r, 1);
+  for (let i = 0; i < r.goal - 1; i++) {
+    interact(r, i);
+    assert.equal(r.interruption, null);
+    assert.equal(r.returnedNote, null);
+  }
+  interact(r, r.goal - 1);
   assert.equal(r.returnedNote, 0);
-  assert.deepEqual(r.removed, [1]);
-  assert.equal(r.hits, 1);
+  assert.equal(r.hits, r.goal - 1);
+  assert.equal(r.status, "active");
   assert.ok(r.interruption);
   const snapshot = structuredClone(r);
   assert.equal(interact(r, 0), "ignored");
@@ -158,30 +162,39 @@ test("scope resurrects a shredded request exactly once", () => {
   resumeInterruption(r);
   interact(r, 0);
   assert.equal(r.interruption, null);
-  for (let i = 2; i < 7; i++) interact(r, i);
   assert.equal(r.status, "won");
 });
-test("alignment derails one aligned boss once and remains solvable", () => {
-  const r = makeRound(6, 9);
-  for (let i = 0; i < 2; i++)
-    while (r.directions[i] !== 0 && !r.interruption) interact(r, i);
-  assert.equal(r.hits, 1);
-  assert.ok([0, 1].includes(r.distractedPerson));
-  assert.notEqual(r.directions[r.distractedPerson], 0);
-  resumeInterruption(r);
-  while (r.status === "active")
-    interact(
-      r,
-      r.directions.findIndex((d) => d !== 0),
-    );
-  assert.equal(r.status, "won");
+test("the final alignment derails an earlier boss, regardless of click order", () => {
+  for (let last = 0; last < 4; last++) {
+    const r = makeRound(6, last + 9);
+    const order = [0, 1, 2, 3].filter((i) => i !== last).concat(last);
+    for (const i of order) {
+      while (r.directions[i] !== 0) interact(r, i);
+      if (i !== last) assert.equal(r.interruption, null);
+    }
+    assert.equal(r.hits, r.goal - 1);
+    assert.equal(r.status, "active");
+    assert.ok(r.interruption);
+    assert.notEqual(r.distractedPerson, last);
+    assert.equal(r.directions[last], 0);
+    assert.notEqual(r.directions[r.distractedPerson], 0);
+    resumeInterruption(r);
+    while (r.status === "active") interact(r, r.distractedPerson);
+    assert.equal(r.status, "won");
+    assert.equal(r.interruption, null);
+  }
 });
 test("coffee growth freezes both liquids and clock, then allows a generous refill", () => {
   const r = makeRound(5, 9);
   startPour(r);
+  advanceTime(r, 63 / r.rate);
+  assert.equal(r.interruption, null);
+  assert.equal(r.tall, false);
+  assert.equal(r.fill, 63);
+  // Even a delayed frame must stop just below the original 68% target.
   advanceTime(r, 10);
   assert.ok(r.interruption);
-  assert.equal(r.fill, 28);
+  assert.equal(r.fill, 64 * 0.8);
   assert.equal(r.pouring, false);
   assert.equal(r.tall, true);
   assert.equal(r.max - r.min, 22);
@@ -191,7 +204,7 @@ test("coffee growth freezes both liquids and clock, then allows a generous refil
   assert.equal(stopPour(r), "ignored");
   advanceTime(r, 4);
   assert.equal(r.elapsed, elapsed);
-  assert.equal(r.fill, 28);
+  assert.equal(r.fill, 64 * 0.8);
   advanceTime(r, 1);
   assert.equal(r.interruption, null);
   assert.equal(r.elapsed, elapsed);
@@ -201,16 +214,22 @@ test("coffee growth freezes both liquids and clock, then allows a generous refil
 });
 test("CYA sticker needs peeling and then a separate red-flag action", () => {
   const r = makeRound(7, 19);
+  for (let i = 0; i < r.goal - 2; i++) {
+    interact(r, r.alarm);
+    assert.equal(r.interruption, null);
+    assert.equal(r.covered, false);
+  }
   interact(r, r.alarm);
   assert.ok(r.covered);
   resumeInterruption(r);
   const alarm = r.alarm;
   assert.equal(interact(r, alarm), "peeled");
   assert.equal(r.alarm, alarm);
-  assert.equal(r.hits, 1);
+  assert.equal(r.hits, r.goal - 1);
   assert.equal(r.covered, false);
   interact(r, alarm);
-  assert.equal(r.hits, 2);
+  assert.equal(r.hits, r.goal);
+  assert.equal(r.status, "won");
   assert.equal(r.interruption, null);
 });
 test("jokes vary across sessions and the opening four rounds have no twists", () => {
