@@ -187,9 +187,9 @@ function interrupt(r, title, instruction) {
 function resumeInterruption(r) {
   r.interruption = null;
 }
-function applyTwist(r) {
+function applyTwist(r, lastPerson) {
   if (r.index < 4 || r.twistDone) return;
-  if (r.type === "scope" && r.hits === 2) {
+  if (r.type === "scope" && r.hits === r.goal) {
     r.returnedNote = r.removed.shift();
     r.hits--;
     interrupt(
@@ -197,10 +197,10 @@ function applyTwist(r) {
       "LEADERSHIP PRIORITY",
       "It’s back. Shred the returned request, too.",
     );
-  } else if (r.type === "align" && r.hits === 2) {
+  } else if (r.type === "align" && r.hits === r.goal) {
     const aligned = r.directions
       .map((d, i) => (d === 0 ? i : -1))
-      .filter((i) => i >= 0);
+      .filter((i) => i >= 0 && i !== lastPerson);
     r.distractedPerson = aligned[Math.floor(r.twistChoice * aligned.length)];
     r.directions[r.distractedPerson] = 1 + Math.floor(r.twistChoice * 3);
     r.hits--;
@@ -209,14 +209,14 @@ function applyTwist(r) {
       "MEETING OFF THE RAILS",
       "Turn the distracted boss back toward the exit →",
     );
-  } else if (r.type === "alarms" && r.hits === 1) {
+  } else if (r.type === "alarms" && r.hits === r.goal - 1) {
     r.covered = true;
     interrupt(
       r,
       "REPORTING HAS BEEN IMPROVED",
       "Peel off the ON TRACK sticker. Then tap the red flag underneath.",
     );
-  } else if (r.type === "coffee" && r.fill >= 35) {
+  } else if (r.type === "coffee" && r.fill >= r.min - 4 - 1e-9) {
     r.tall = true;
     r.fill *= 0.8;
     r.min = 74;
@@ -251,7 +251,7 @@ function advanceTime(r, seconds, untimed = false) {
   }
   // Stop exactly at the coffee interruption, even after a delayed animation frame.
   if (r.type === "coffee" && r.index >= 4 && !r.twistDone && r.pouring)
-    seconds = Math.min(seconds, Math.max(0, (35 - r.fill) / r.rate));
+    seconds = Math.min(seconds, Math.max(0, (r.min - 4 - r.fill) / r.rate));
   if (!untimed) r.elapsed += seconds;
   if (r.type === "coffee" && r.pouring) {
     r.fill = Math.min(105, r.fill + r.rate * seconds);
@@ -295,7 +295,7 @@ function interact(r, value) {
     r.sequence++;
     r.alarm = (r.alarm + 1 + ((r.sequence * 3) % 8)) % 9;
   } else return "ignored";
-  applyTwist(r);
+  applyTwist(r, value);
   if (r.hits >= r.goal) finish(r, true);
   return "hit";
 }

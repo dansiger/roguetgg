@@ -93,6 +93,11 @@ try {
       const box = page.locator(".interruption");
       if (!(await box.count())) return;
       assert.match(await page.locator("#timer-label").innerText(), /paused/);
+      if (type !== "coffee")
+        assert.equal(
+          await page.locator("#round-progress").innerText(),
+          type === "scope" ? "6 / 7" : type === "align" ? "3 / 4" : "4 / 5",
+        );
       const width = await page.locator("#timer-fill").getAttribute("style");
       await page.waitForTimeout(300);
       assert.equal(

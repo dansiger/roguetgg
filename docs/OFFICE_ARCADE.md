@@ -13,12 +13,12 @@ A deliberately different experiment from Critical Path. The entry page now opens
 
 The second pass adds one office interruption to each returning challenge:
 
-- Scope: after two shreds, one discarded request returns as a leadership priority.
-- Coffee: at 35% fill, the cup grows taller and the target rises. Pouring stops
+- Scope: after the final original shred, one earlier request returns as a leadership priority.
+- Coffee: at 64% fill, just below the original 68% target, the cup grows taller and the target rises. Pouring stops
   for the joke; hold again afterward. The wider 74–96% band, slower pour, and
   two extra seconds make this forgiving.
-- ALIGN: after two bosses align, one randomly turns away during a random tangent.
-- Dashboard: after the first red flag, someone covers the next one with a crooked
+- ALIGN: when the last boss aligns, a different, previously aligned boss turns away during a random tangent.
+- Dashboard: with four of five red flags handled, someone covers the final one with a crooked
   ON TRACK sticker. Peel it, then tap the exposed flag.
 
 Each interruption has a seeded random explanation and pauses gameplay and the
