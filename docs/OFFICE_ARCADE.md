@@ -61,7 +61,9 @@ a dark footer and result card.
 
 The TGG connection stays in the footer during play. The final survival report
 awards a comic, unofficial title, supports PNG download/native file sharing,
-and offers a contact link. Analytics are local CustomEvents only: no data is
+and offers a contact link. Each game randomly selects one of three approved
+TGG end-screen blurbs: constant heroics, the larger coffee cup, or “fine” as the
+punchline. Selection stays stable for that session and is independent of score. Analytics are local CustomEvents only: no data is
 sent to a service. Sharing is initiated by the player.
 
 ## Architecture and checks
