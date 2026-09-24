@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#252c29" />
+    <meta
+      name="description"
+      content="A fox. A transformation. A few unexpected dependencies. Play Critical Path, a short tactical corporate-fantasy game."
+    />
+    <title>Critical Path — The Gunter Group</title>
+    <link rel="icon" type="image/svg+xml" href="assets/kit.svg" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to game</a>
+    <header class="site-header">
+      <a
+        class="brand"
+        href="https://guntergroup.com/"
+        target="_blank"
+        rel="noopener"
+        aria-label="The Gunter Group website"
+        ><img
+          src="assets/tgg-logo.svg"
+          alt="The Gunter Group"
+          width="100"
+          height="49"
+      /></a>
+      <div class="wordmark">
+        CRITICAL PATH <span>A LITTLE STRATEGY GOES A LONG WAY.</span>
+      </div>
+      <div class="header-actions">
+        <button id="sound" class="quiet" aria-pressed="false">Sound off</button
+        ><button id="help" class="quiet">How to play</button>
+      </div>
+    </header>
+    <main id="main" tabindex="-1"></main>
+    <footer>
+      <span>A corporate fantasy from The Gunter Group.</span
+      ><span>Strategy. People. Technology. Execution.</span>
+    </footer>
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <div class="dialog-top">
+        <span class="eyebrow">THE FIELD GUIDE</span
+        ><button id="close-help" aria-label="Close field guide">×</button>
+      </div>
+      <h2 id="help-title">Lead the initiative.<br />Read the room.</h2>
+      <p>Nothing moves until you do. Each action gives the risks one turn.</p>
+      <ol>
+        <li>
+          <strong>Move or resolve.</strong> Tap a neighboring hex to move. Tap a
+          neighboring risk to resolve 1 point. Resolving a risk earns 1
+          influence and leaves an artifact; collecting it earns 1 more.
+        </li>
+        <li>
+          <strong>Read the intentions.</strong> Striped hexes will be disrupted
+          next turn. Numbers show overlapping threats. Arrows show a risk’s
+          planned move. Choose Inspect a risk, then tap it on the board.
+          Inspecting costs no turn.
+        </li>
+        <li>
+          <strong>Earn tools as you go.</strong> Level 1 teaches movement and
+          resolution. At each promotion, you unlock one tool. Tap a tool to
+          preview it, then choose a highlighted target. Facilitate and Recovery
+          plan show a Use button before spending influence. Waiting restores 1
+          influence but risks still act.
+        </li>
+        <li>
+          <strong>Reach the gate.</strong> Resolve the required number of risks,
+          then move onto the diamond gate. Promotions restore 3 capacity, refill
+          influence, and unlock a tool. From the second promotion onward, also
+          choose an upgrade.
+        </li>
+      </ol>
+      <p>
+        <strong>Keyboard:</strong> Tab and Enter work throughout. On the board,
+        arrows browse hexes; Enter selects. Key 1 returns to movement; keys 2–6
+        select unlocked tools. W waits from Level 2 onward. Escape cancels a
+        selected capability.
+      </p>
+      <p class="muted">
+        Sound is optional. This demo sends no analytics or personal information.
+        “Talk with TGG” opens TGG’s website.
+      </p>
+    </dialog>
+    <div
+      id="announcement"
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+    ></div>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

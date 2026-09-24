@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A corporate-fantasy tactical roguelite for The Gunter Group",
+  "description": "Everything Is Fine: office microgames, plus the original Critical Path tactical prototype",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check src/game.js && node --check src/app.js",
+    "check": "node --check src/game.js && node --check src/app.js && node --check src/office/game.js && node --check src/office/app.js",
     "build": "node scripts/build.mjs",
-    "test:browser": "node tests/browser.mjs",
-    "format": "prettier --write \"src/*.{js,css}\" \"scripts/*.mjs\" \"tests/*.mjs\" index.html package.json"
+    "test:browser": "node tests/browser.mjs && node tests/office-browser.mjs",
+    "format": "prettier --write \"src/**/*.{js,css}\" \"scripts/*.mjs\" \"tests/*.mjs\" index.html tactical.html package.json",
+    "test:office": "node tests/office-browser.mjs"
   },
   "engines": {
     "node": ">=20"
