@@ -33,7 +33,7 @@ pressure and lets you advance each punchline yourself.
 
 Tap/click notes, bosses, and alarms. For coffee, hold POUR, then release inside
 the striped band. Keyboard users can Tab to targets and use Enter/Space; hold
-Space/Enter to pour. Sound is optional and starts off.
+Space/Enter to pour. Sound starts when you clock in. Use Sound to mute everything or Music to mute only the backing loop.
 
 Download the final result as a PNG or use native sharing where supported.
 The game sends no analytics or personal information.

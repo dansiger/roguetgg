@@ -35,6 +35,29 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.addInitScript(() => {
     window.officeEvents = [];
+    window.audioContexts = [];
+    const NativeContext = window.AudioContext;
+    window.AudioContext = class extends NativeContext {
+      constructor(...args) {
+        super(...args);
+        this.testGains = [];
+        this.testAnalyser = this.createAnalyser();
+        window.audioContexts.push(this);
+      }
+      createGain() {
+        const gain = super.createGain();
+        if (this.testGains.length === 0) gain.connect(this.testAnalyser);
+        this.testGains.push(gain);
+        return gain;
+      }
+    };
+    window.audioLevel = () => {
+      const ctx = window.audioContexts[0];
+      if (!ctx) return 0;
+      const values = new Float32Array(ctx.testAnalyser.fftSize);
+      ctx.testAnalyser.getFloatTimeDomainData(values);
+      return Math.max(...values.map(Math.abs));
+    };
     window.addEventListener("office:analytics", (e) =>
       window.officeEvents.push(e.detail),
     );
@@ -51,15 +74,39 @@ try {
     path: "test-results/office-mobile-intro.png",
     fullPage: true,
   });
+  assert.equal(await page.evaluate(() => window.audioContexts.length), 0);
   await page.getByRole("button", { name: "Clock in" }).click();
+  await page.waitForFunction(() => window.audioLevel() > 0.0001);
+  await page.locator("#music").click();
+  await page.waitForTimeout(500);
+  assert.equal(
+    await page.locator("#music").getAttribute("aria-pressed"),
+    "false",
+  );
+  assert.ok(await page.evaluate(() => window.audioLevel() < 0.0001));
+  await page.locator("#sound").click();
+  assert.equal(
+    await page.locator("#sound").getAttribute("aria-pressed"),
+    "false",
+  );
+  await page.locator("#sound").click();
   await page.waitForTimeout(250);
   assert.match(await page.locator("#timer-label").innerText(), /Timer starts/);
   await page.locator('[data-note="0"]').click();
+  await page.waitForFunction(() => window.audioLevel() > 0.0001);
   await page.locator("#pause").click();
   const frozen = await page.locator("#timer-label").innerText();
   await page.waitForTimeout(350);
   assert.equal(await page.locator("#timer-label").innerText(), frozen);
+  assert.ok(await page.evaluate(() => window.audioLevel() < 0.0001));
   await page.locator('[data-action="resume"]').click();
+  await page.locator("#music").click();
+  await page.waitForFunction(() => window.audioLevel() > 0.0001);
+  await page.locator("#sound").click();
+  await page.waitForTimeout(350);
+  assert.ok(await page.evaluate(() => window.audioLevel() < 0.0001));
+  await page.locator("#sound").click();
+  await page.waitForFunction(() => window.audioLevel() > 0.0001);
   await page.locator('[data-action="untimed"]').click();
   for (const i of [1, 2, 3]) {
     await page.locator(`[data-note="${i}"]`).focus();
@@ -73,6 +120,10 @@ try {
   await page.locator('[data-action="continue"]').click();
   for (let index = 1; index < 8; index++) {
     const type = await page.locator(".game-frame").getAttribute("data-type");
+    if (type === "align") {
+      assert.ok((await page.locator('[data-gender="male"]').count()) >= 1);
+      assert.ok((await page.locator('[data-gender="female"]').count()) >= 1);
+    }
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert.equal(
@@ -236,6 +287,7 @@ try {
   assert.match(await page.locator(".punchline").innerText(), /subsidiary/);
   await page.waitForSelector('[data-type="align"]', { timeout: 5000 });
   assert.deepEqual(errors, []);
+  assert.equal(await page.evaluate(() => window.audioContexts.length), 1);
   const touch = await browser.newContext({
     viewport: { width: 390, height: 844 },
     hasTouch: true,

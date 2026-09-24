@@ -140,6 +140,25 @@ function newSession(seed = Date.now()) {
     round: makeRound(0, seed),
   };
 }
+function makeLeaders(count, seed) {
+  const random = rng(seed ^ 0x4c454144);
+  const genders = [
+    "male",
+    "female",
+    ...Array.from({ length: count - 2 }, () =>
+      random() < 0.5 ? "male" : "female",
+    ),
+  ];
+  for (let i = genders.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [genders[i], genders[j]] = [genders[j], genders[i]];
+  }
+  return genders.map((gender) => ({
+    gender,
+    hair: Math.floor(random() * 3),
+    palette: Math.floor(random() * 4),
+  }));
+}
 function makeRound(index, seed) {
   const config = ROUNDS[index],
     random = rng(seed + index * 809),
@@ -150,6 +169,10 @@ function makeRound(index, seed) {
   }
   return {
     ...config,
+    leaders:
+      config.type === "align"
+        ? makeLeaders(config.goal, seed + index * 809)
+        : [],
     index,
     status: "ready",
     elapsed: 0,

@@ -39,7 +39,15 @@ advance automatically after 3.2 seconds.
 Original CSS office illustrations: an unreliable status monitor, sticky notes,
 a “Phase Two” shredder, executive caricatures, coffee, and a green dashboard.
 No film characters, dialogue, or artwork are used.
-Optional synthesized audio starts off. Reduced motion suppresses paper bursts
+Each ALIGN round has a seeded, shuffled mix of male and female leaders, with at
+least one of each. Hairstyles and skin/jacket palettes also vary independently
+of role.
+
+Audio starts after Clock in: original swung mallets, plucked bass, and light desk
+percussion beneath procedural shredder, pouring, arrow, alarm, sticker-peel,
+interruption, and outcome effects. Sound toggles all audio; Music independently
+mutes the backing loop. Pause and hidden tabs mute audio; music stops at results.
+No external audio files or services are needed. Reduced motion suppresses paper bursts
 and motion effects. Touch targets and keyboard activation are supported.
 Coffee uses press/hold/release with pointer capture or Space/Enter.
 
@@ -59,13 +67,14 @@ sent to a service. Sharing is initiated by the player.
 ## Architecture and checks
 
 - `src/office/game.js`: pure rules, seeded setup, timing, scoring, transitions.
-- `src/office/app.js`: DOM, pointer/keyboard input, audio, RAF clock, export.
+- `src/office/app.js`: DOM, pointer/keyboard input, RAF clock, export.
+- `src/office/audio.js`: procedural effects, original music, audio lifecycle.
 - `src/office/style.css`: responsive illustrated scenes and feedback.
-- `tests/office.test.mjs`: seventeen rule tests.
+- `tests/office.test.mjs`: eighteen rule tests.
 - `tests/office-browser.mjs`: full session, timeout progression, pause,
   pointer/keyboard pouring, touch, reduced motion, download, responsive checks.
 
-The updated rules pass all 36 tests across both prototypes. Browser checks cover
+The updated rules pass all 37 tests across both prototypes. Browser checks cover
 an eight-win session with all four interruptions, frozen coffee during the joke,
 timed interruption auto-resume, manual pause during a joke, timeout progression,
 keyboard/pointer input, touch, reduced motion, PNG export, and responsive widths.

@@ -257,3 +257,18 @@ test("jokes vary across sessions and the opening four rounds have no twists", ()
     assert.equal(r.twistDone, false);
   }
 });
+
+test("every ALIGN cast is mixed, seeded, and shuffled independently of role", () => {
+  for (const index of [1, 6]) {
+    const casts = new Set();
+    for (let seed = 0; seed < 100; seed++) {
+      const leaders = makeRound(index, seed).leaders;
+      assert.equal(leaders.length, ROUNDS[index].goal);
+      assert.ok(leaders.some((p) => p.gender === "male"));
+      assert.ok(leaders.some((p) => p.gender === "female"));
+      assert.deepEqual(leaders, makeRound(index, seed).leaders);
+      casts.add(leaders.map((p) => p.gender).join(","));
+    }
+    assert.ok(casts.size > 2);
+  }
+});
