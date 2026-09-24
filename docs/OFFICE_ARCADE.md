@@ -52,10 +52,18 @@ sent to a service. Sharing is initiated by the player.
 - `tests/office-browser.mjs`: full session, timeout progression, pause,
   pointer/keyboard pouring, touch, reduced motion, download, responsive checks.
 
-The implementation workspace disconnected during development. The twelve pure
-rule tests passed in the available JavaScript runtime. Browser/build checks
-are supplied in the repository workflow; their result must be checked before
-claiming browser verification. No visual screenshot review has yet been completed.
+The local implementation workspace disconnected during development. The twelve
+new pure rule tests first passed in the available JavaScript runtime. GitHub
+Actions then passed syntax checks, the static build, all 31 rule tests across
+both prototypes, and both browser suites. The new browser suite exercised an
+eight-win session, timed failure/automatic continuation, keyboard and pointer
+pouring, pause, no-timer mode, touch, reduced motion, PNG export, and viewport
+widths from 320 to 1440 pixels.
+
+[Passing check run](https://github.com/dansiger/roguetgg/actions/runs/35953962113).
+Screenshots are included in that run's browser-checks artifact. Manual visual
+review of those screenshots remains pending because the local workspace was
+disconnected; automated browser checks are not a substitute for a humor playtest.
 
 ## Playtest questions
 
