@@ -2148,3 +2148,98 @@ footer img {
     transition: none;
   }
 }
+
+/* The seeded cast varies independently of executive role. */
+.manager {
+  --skin: #d3a57d;
+  --hair: #465048;
+  --jacket: #607469;
+}
+.manager.palette-1 {
+  --skin: #9e694d;
+  --hair: #302d2a;
+  --jacket: #597f89;
+}
+.manager.palette-2 {
+  --skin: #e2bc95;
+  --hair: #aa7750;
+  --jacket: #786482;
+}
+.manager.palette-3 {
+  --skin: #bb8764;
+  --hair: #d1c5ae;
+  --jacket: #60715c;
+}
+.manager .manager-head {
+  background: var(--skin);
+}
+.manager .manager-body {
+  background: var(--jacket);
+}
+.manager .hair {
+  background: var(--hair);
+}
+.avatar-male.avatar-hair-1 .hair {
+  left: 22px;
+  height: 17px;
+}
+.avatar-male.avatar-hair-2 .hair {
+  right: 12px;
+  height: 18px;
+}
+.avatar-female .manager-head {
+  box-shadow:
+    -5px 0 0 var(--hair),
+    5px 0 0 var(--hair);
+}
+.avatar-female .hair {
+  height: 16px;
+  border-radius: 14px 14px 7px 2px;
+}
+.avatar-female .hair:after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: -2px;
+  width: 9px;
+  height: 36px;
+  border-radius: 0 0 7px 7px;
+  background: var(--hair);
+}
+.avatar-female.avatar-hair-1 .hair:after {
+  top: -6px;
+  right: -8px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+}
+.avatar-female.avatar-hair-2 .hair:after {
+  right: -10px;
+  top: 5px;
+  height: 33px;
+  width: 12px;
+  transform: rotate(-15deg);
+}
+.avatar-female .tie {
+  width: 20px;
+  height: 12px;
+  left: 14px;
+  background: #f6e5ba;
+  clip-path: polygon(0 0, 50% 65%, 100% 0, 80% 100%, 20% 100%);
+}
+@media (max-width: 600px) {
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 69px;
+    padding: 12px 18px;
+    gap: 8px;
+  }
+  .top-actions {
+    margin-left: auto;
+  }
+  .top-actions button {
+    min-height: 44px;
+    padding: 8px 10px;
+  }
+}

@@ -8,7 +8,7 @@
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check src/game.js && node --check src/app.js && node --check src/office/game.js && node --check src/office/app.js",
+    "check": "node --check src/game.js && node --check src/app.js && node --check src/office/game.js && node --check src/office/app.js && node --check src/office/audio.js",
     "build": "node scripts/build.mjs",
     "test:browser": "node tests/browser.mjs && node tests/office-browser.mjs",
     "format": "prettier --write \"src/**/*.{js,css}\" \"scripts/*.mjs\" \"tests/*.mjs\" index.html tactical.html package.json",

@@ -1,3 +1,4 @@
+import { createOfficeAudio } from "./audio.js";
 import {
   resumeInterruption,
   ROUNDS,
@@ -14,8 +15,8 @@ const main = document.querySelector("#main"),
 let session = newSession(),
   screen = "intro",
   paused = false,
-  sound = false,
-  audio,
+  sound = true,
+  music = true,
   last = performance.now(),
   feedbackRemaining = 0,
   reported = false,
@@ -35,43 +36,30 @@ function event(name, detail = {}) {
     new CustomEvent("office:analytics", { detail: { name, ...detail } }),
   );
 }
-function tone(kind = "tap") {
+const audio = createOfficeAudio();
+const tone = (kind) => audio.effect(kind);
+async function unlockAudio() {
   if (!sound) return;
-  try {
-    audio ??= new AudioContext();
-    audio.resume();
-    const time = audio.currentTime;
-    const notes =
-      kind === "win"
-        ? [440, 554, 660]
-        : kind === "lose"
-          ? [180, 140]
-          : kind === "shred"
-            ? [120, 75, 45]
-            : [330];
-    notes.forEach((freq, i) => {
-      const o = audio.createOscillator(),
-        g = audio.createGain();
-      o.type = kind === "shred" ? "sawtooth" : "sine";
-      o.frequency.setValueAtTime(freq, time + i * 0.075);
-      g.gain.setValueAtTime(0.0001, time);
-      g.gain.setValueAtTime(0.045, time + i * 0.075);
-      g.gain.exponentialRampToValueAtTime(0.0001, time + i * 0.075 + 0.12);
-      o.connect(g);
-      g.connect(audio.destination);
-      o.start(time + i * 0.075);
-      o.stop(time + i * 0.075 + 0.14);
-    });
-  } catch {
-    sound = false;
+  if (!(await audio.unlock())) {
+    for (const id of ["sound", "music"]) {
+      const button = document.querySelector("#" + id);
+      button.textContent = id === "sound" ? "Sound n/a" : "Music n/a";
+      button.disabled = true;
+      button.setAttribute("aria-pressed", "false");
+    }
   }
+}
+function syncAudio() {
+  audio.setScene(screen === "game", paused || document.hidden);
+  audio.setPouring(screen === "game" && !paused && session.round.pouring);
 }
 function mugArt() {
   return `<div class="coffee-machine"><span>TEAM WELLNESS DISPENSER</span><div class="spout"></div></div><div class="coffee-stream"></div><div class="mug-handle"></div><div class="mug"><div class="coffee-fill"></div><div class="target-band" style="bottom:${session.round.min}%;height:${session.round.max - session.round.min}%"><span>STOP HERE</span></div><div class="mug-print">WORLD’S<br><b>OKAYEST</b><br>BENEFITS</div><div class="mug-shine"></div></div><div class="coffee-shadow"></div>`;
 }
 function manager(i, dir) {
   const names = ["CEO", "CFO", "VP", "SVP"];
-  return `<button class="manager ${dir === 0 ? "aligned" : ""}" data-person="${i}" aria-label="Turn ${names[i]}, currently pointing ${["right, aligned", "down", "left", "up"][dir]}"><span class="manager-role">${names[i]}</span><span class="manager-head"><i class="hair hair-${i}"></i><i class="eyes"></i><i class="mouth"></i></span><span class="manager-body"><i class="tie"></i></span><span class="direction" style="--angle:${dir * 90}deg">➜</span><span class="aligned-check">${dir === 0 ? "✓" : "↻"}</span></button>`;
+  const leader = session.round.leaders[i];
+  return `<button class="manager avatar-${leader.gender} avatar-hair-${leader.hair} palette-${leader.palette} ${dir === 0 ? "aligned" : ""}" data-person="${i}" data-gender="${leader.gender}" aria-label="Turn ${names[i]}, currently pointing ${["right, aligned", "down", "left", "up"][dir]}"><span class="manager-role">${names[i]}</span><span class="manager-head"><i class="hair"></i><i class="eyes"></i><i class="mouth"></i></span><span class="manager-body"><i class="tie"></i></span><span class="direction" style="--angle:${dir * 90}deg">➜</span><span class="aligned-check">${dir === 0 ? "✓" : "↻"}</span></button>`;
 }
 function intro() {
   return `<section class="intro"><div class="intro-text"><span class="eyebrow">THE TINY OFFICE ARCADE</span><h1>Everything<br>is <em>fine.</em><span class="asterisk">*</span></h1><p class="intro-sub">Eight minor emergencies.<br>One completely normal workday.</p><button class="primary" data-action="start">Clock in <span>→</span></button><p class="intro-detail">About a minute. No actual work required.</p><p class="asterisk-note">*This statement has been approved by management.</p></div><div class="intro-scene" aria-hidden="true"><div class="scene-label">BUSINESS AS USUAL / 09:00</div><div class="wall-clock"><i></i><b></b></div><div class="poster">STAY<br>POSITIVE.<small>THE NUMBERS ARE OPTIONAL.</small></div><div class="monitor"><div class="monitor-screen"><span class="status-label">COMPANY STATUS</span><strong>ALL<br>GOOD<span>✓</span></strong><div class="chart-bars"><i></i><i></i><i></i><i></i><i></i></div></div><div class="monitor-foot"></div></div><div class="desk"></div><div class="sticky sticky-a">just one<br>tiny change :)</div><div class="sticky sticky-b">URGENT<small>(again)</small></div><div class="intro-mug">this is<br><b>fine.</b><i></i></div><div class="paper-stack"></div><div class="scene-caption">PLEASE IGNORE THE SOUND FROM FINANCE.</div></div></section><div class="intro-strip"><span>SHRED THE EXTRAS</span><b>✳</b><span>ALIGN THE BOSSES</span><b>✳</b><span>CAFFEINATE RESPONSIBLY</span><b>✳</b><span>QUESTION THE DASHBOARD</span></div>`;
@@ -106,6 +94,7 @@ function render() {
 function start() {
   session = newSession(crypto.getRandomValues(new Uint32Array(1))[0]);
   screen = "game";
+  void unlockAudio();
   paused = false;
   reported = false;
   feedbackRemaining = 0;
@@ -116,6 +105,7 @@ function start() {
   render();
   main.focus();
   window.scrollTo(0, 0);
+  syncAudio();
   event("session_started");
   say(ROUNDS[0].title + " " + ROUNDS[0].instruction);
 }
@@ -131,7 +121,7 @@ function burst(target, kind) {
     setTimeout(() => bit.remove(), 1500);
   }
 }
-function syncBoard(kind, value, target) {
+function syncBoard(kind, value, target, result) {
   const r = session.round;
   if (kind === "note") {
     target.classList.add("shredded");
@@ -177,7 +167,7 @@ function syncBoard(kind, value, target) {
         value === r.distractedPerson && d !== 0,
       );
     });
-    tone();
+    tone("align");
   }
   if (kind === "alarm") {
     document.querySelectorAll("[data-alarm]").forEach((button) => {
@@ -204,7 +194,7 @@ function syncBoard(kind, value, target) {
       );
     });
     burst(target, "confetti");
-    tone();
+    tone(result === "peeled" ? "peel" : "alarm");
   }
   document.querySelector("#round-progress").textContent =
     `${r.hits} / ${r.goal}`;
@@ -252,6 +242,8 @@ function syncInterruption() {
   document.querySelector(".arena").inert = true;
   box.querySelector("button").focus({ preventScroll: true });
   say(`${r.interruption.message} ${r.interruption.instruction} Clock paused.`);
+  tone("interrupt");
+  syncAudio();
   event("office_interruption", { index: session.index, type: r.type });
 }
 function conclude() {
@@ -292,12 +284,14 @@ function next() {
   render();
   main.focus();
   window.scrollTo(0, 0);
+  syncAudio();
   if (screen === "game")
     say(session.round.title + " " + session.round.instruction);
 }
 function togglePause(force) {
   if (screen !== "game") return;
   paused = typeof force === "boolean" ? force : !paused;
+  syncAudio();
   session.round.pouring = false;
   pointerId = null;
   document.querySelector(".coffee-arena")?.classList.remove("pouring");
@@ -320,12 +314,14 @@ function togglePause(force) {
 function pourRelease() {
   if (screen !== "game" || paused) return;
   const result = stopPour(session.round);
+  syncAudio();
   pointerId = null;
   document.querySelector(".coffee-arena")?.classList.remove("pouring");
   if (result === "short") {
     document.querySelector(".coffee-tip").textContent =
       "A sip? For the whole team? Try a little more.";
     say("Too little. Hold POUR longer.");
+    tone("short");
   }
   conclude();
 }
@@ -371,7 +367,8 @@ main.addEventListener("click", async (e) => {
     if (b.dataset[kind] !== undefined) {
       const value = Number(b.dataset[kind]),
         result = interact(session.round, value);
-      if (result === "hit" || result === "peeled") syncBoard(kind, value, b);
+      if (result === "hit" || result === "peeled")
+        syncBoard(kind, value, b, result);
       else if (result === "miss") {
         b.classList.remove("wrong");
         void b.offsetWidth;
@@ -442,12 +439,25 @@ document.querySelector("#sound").onclick = (e) => {
     "aria-label",
     sound ? "Turn sound off" : "Turn sound on",
   );
-  tone();
+  audio.setEnabled(sound);
+  if (sound) void unlockAudio();
+};
+document.querySelector("#music").onclick = (e) => {
+  music = !music;
+  e.currentTarget.textContent = music ? "Music on" : "Music off";
+  e.currentTarget.setAttribute("aria-pressed", music);
+  e.currentTarget.setAttribute(
+    "aria-label",
+    music ? "Turn music off" : "Turn music on",
+  );
+  audio.setMusic(music);
+  if (music) void unlockAudio();
 };
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && screen === "game") togglePause();
 });
 document.addEventListener("visibilitychange", () => {
+  syncAudio();
   if (document.hidden && screen === "game" && !paused) togglePause(true);
 });
 function tick(now) {
@@ -486,6 +496,7 @@ function tick(now) {
       if (feedbackRemaining <= 0) next();
     }
   }
+  syncAudio();
   requestAnimationFrame(tick);
 }
 async function card() {
