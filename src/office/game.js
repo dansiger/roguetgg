@@ -373,7 +373,7 @@ function resultProfile(s) {
           : "Senior Vice President of Tomorrow",
     line:
       score >= 7
-        ? "You prevented a surprising amount of business."
+        ? "You prevented a surprising amount of nonsense."
         : score >= 4
           ? "Things happened. You happened back."
           : "You correctly identified that this could have been an email.",
