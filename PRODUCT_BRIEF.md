@@ -1,5 +1,19 @@
 # Critical Path — Product Brief
 
+## Current direction — September 24, 2026
+
+Playtesting established that the tactical prototype communicated gameplay but
+felt like work. The user selected a new MVP of tiny office challenges with
+original, straight-faced corporate absurdity. **Everything Is Fine** is now the
+default entry: four simple interactions, eight short rounds, comic success and
+miss outcomes, and a shareable survival report. The original tactical game
+remains at `tactical.html` for comparison.
+
+This supersedes the roguelite implementation direction for the current
+experiment. The marketing objective remains an instantly enjoyable activity
+with TGG relevance emerging at the end. See [office arcade notes](docs/OFFICE_ARCADE.md)
+for mechanics, controls, validation status, and playtest questions.
+
 ## Purpose of this document
 
 This brief records the product discovery completed before implementation. It is

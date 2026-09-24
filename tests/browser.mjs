@@ -45,7 +45,7 @@ try {
     );
   });
   await mkdir("test-results", { recursive: true });
-  await page.goto("http://localhost:5178");
+  await page.goto("http://localhost:5178/tactical.html");
   await page.screenshot({
     path: "test-results/desktop-intro.png",
     fullPage: true,
